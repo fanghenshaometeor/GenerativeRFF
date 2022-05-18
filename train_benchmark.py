@@ -5,6 +5,9 @@ import argparse
 
 from utils import setup_seed
 from data_loader import get_dataloader
+from model import net_g_shallow
+from model import net_g_deep
+from model import GRFFNet
 
 # -------- fix data type ----------------
 torch.set_default_tensor_type(torch.FloatTensor)
@@ -20,12 +23,15 @@ parser.add_argument('--num_train',type=int,default=0,help='number of training se
 parser.add_argument('--num_test',type=int,default=0,help='number of test data')
 parser.add_argument('--num_val',type=int,default=0,help='number of validation set')
 parser.add_argument('--num_dim',type=int,default=0,help='number of dimension')
+parser.add_argument('--num_classes',type=int,default=2,help='number of classes')
 # -------- exp. settings ------------
 parser.add_argument('--val',type=int,help='enable the adversarial training')
 parser.add_argument('--ratio_val',type=float,default=0.2,help='ratio of validation')
 parser.add_argument('--ratio_test',type=float,default=0.5,help='ratio of test')
 # -------- exp. settings ------------
 parser.add_argument('--num_repeat',type=int,default=5,help='number of repeat')
+# -------- model settings -----------
+parser.add_argument('--num_layers',type=int,default=2,help='number of layers in GRFF')
 args = parser.parse_args()
 
 # -------- main function
@@ -45,6 +51,18 @@ def main():
         print("---- data set: ", args.dataset)
         print("---- # dimension = %d."%args.num_dim)
         print("---- # train/test/val. = %d/%d/%d"%(args.num_train, args.num_test, args.num_val))
+
+        # -------- Preparing model
+        for layer_idx in range(args.num_layers):
+            if layer_idx == 0:
+                net = GRFFNet(GRFFBlock=net_g_shallow, num_classes=args.num_classes, num_layers=1,d=args.num_dim,D=args.D)
+            else:
+                net._add_layer(GRFFBlock=net_g_shallow, layer_index=layer_idx)
+        net = net.cuda()
+        print("-------- --------")
+        print(net)
+
+        # -------- Progressively Training Freeze Inverse
     
         # -------- Perform Training on the whole training set
         args.val=0
