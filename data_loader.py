@@ -44,10 +44,10 @@ def get_dataloader(args):
             trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
             testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
             valloader = None
-    elif args.dataset == 'australian' or args.dataset == 'climate' \
+    elif args.dataset == 'austra' or args.dataset == 'climate' \
         or args.dataset == 'diabetic' or args.dataset == 'sonar' or args.dataset == 'phishing':
         
-        if args.dataset == 'australian':
+        if args.dataset == 'austra':
             args.num_dim=14
             alldataset = Australian(args.data_folder, transform=transforms.Compose([transforms.ToTensor()]))
         elif args.dataset == 'climate':
@@ -76,8 +76,10 @@ def get_dataloader(args):
         else:
             args.num_val = 0
             args.num_test = round(len(alldataset)*args.ratio_test)
-            args.num_train = len(trainset)-args.num_test
+            args.num_train = len(alldataset)-args.num_test
 
+            train_test = data.random_split(alldataset, (args.num_train, args.num_test))
+            trainset, testset = train_test[0], train_test[1]
             trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
             testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
             valloader = None
