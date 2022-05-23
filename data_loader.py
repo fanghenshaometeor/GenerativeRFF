@@ -12,7 +12,7 @@ import os
 # -------- get data sets --------
 def get_dataloader(args):
     if args.dataset=='monks1' or args.dataset=='monks2' or args.dataset=='monks3' \
-        or args.dataset=='adult':
+        or args.dataset=='adult' or args.dataset=='ijcnn':
 
         if args.dataset=='monks1' or args.dataset=='monks2' or args.dataset=='monks3':
             args.num_dim=6
@@ -26,6 +26,13 @@ def get_dataloader(args):
                             transform=transforms.Compose([transforms.ToTensor()]))
             testset = Adult(args.data_folder, train=False,
                             transform=transforms.Compose([transforms.ToTensor()]))
+        elif args.dataset=='ijcnn':
+            args.num_dim=22
+            trainset = Ijcnn(args.data_folder, train=True, 
+                            transform=transforms.Compose([transforms.ToTensor()]))
+            testset = Ijcnn(args.data_folder, train=False,
+                            transform=transforms.Compose([transforms.ToTensor()]))
+
         if args.val:
             args.num_test = len(testset)
             args.num_val = round(len(trainset)*args.ratio_val)
@@ -83,20 +90,6 @@ def get_dataloader(args):
             trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
             testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
             valloader = None
-    elif args.dataset == 'ijcnn':
-        args.num_dim=22
-        trainset = Ijcnn(args.data_folder, datatype='train', 
-                        transform=transforms.Compose([transforms.ToTensor()]))
-        testset = Ijcnn(args.data_folder, datatype='test',
-                        transform=transforms.Compose([transforms.ToTensor()]))
-        valset = Ijcnn(args.data_folder, datatype='val',
-                        transform=transforms.Compose([transforms.ToTensor()]))
-        args.num_val = len(valset)
-        args.num_test = len(testset)
-        args.num_train = len(trainset)
-        trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
-        testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
-        valloader = DataLoader(valset, batch_size=args.batch_size, shuffle=False)
     else:
         assert False, "Unknown dataset : {}".format(args.dataset)
     return trainloader, testloader, valloader
@@ -122,7 +115,7 @@ class Monks(data.Dataset):
         X = np.array(read_data[:,0:-1])
         X = X.astype(np.float32)
         y = y.astype(np.int64)
-        y[y==2] = 0
+        y[y!=1] = 0
 
         # normalize
         for i in range(X.shape[1]):
@@ -287,16 +280,16 @@ ATTRIBUTE:
     FLOAT32
 """
 class Ijcnn(data.Dataset):
-    def __init__(self, data_folder, datatype='train', transform=None):
-        if datatype == 'train':
+    def __init__(self, data_folder, train=True, transform=None):
+        if train:
             data_path = os.path.join(data_folder, 'train.mat')
-            read_data = scio.loadmat(data_path)['train_data']
-        elif datatype == 'test':
+            read_data1 = scio.loadmat(data_path)['train_data']
+            data_path = os.path.join(data_folder, 'val.mat')
+            read_data2 = scio.loadmat(data_path)['val_data']
+            read_data = np.vstack((read_data1, read_data2))
+        else:
             data_path = os.path.join(data_folder, 'test.mat')
             read_data = scio.loadmat(data_path)['test_data']
-        elif datatype == 'val':
-            data_path = os.path.join(data_folder, 'val.mat')
-            read_data = scio.loadmat(data_path)['val_data']
         y = np.array(read_data[:,-1])
         X = np.array(read_data[:,0:-1])
         X = X.astype(np.float32)
