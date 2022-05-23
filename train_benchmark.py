@@ -58,16 +58,16 @@ if not os.path.exists(os.path.join(args.model_dir,args.dataset)):
 args.save_path=os.path.join(args.model_dir,args.dataset)
 if not os.path.exists(os.path.join(args.output_dir,args.dataset)):
     os.makedirs(os.path.join(args.output_dir,args.dataset))
-args.output_path=os.path.join(args.output_dir,args.dataset,'train.log')
+args.output_path=os.path.join(args.output_dir,args.dataset,'train-lr-%s-wd-%s.log'%(str(args.lr),str(args.wd)))
 sys.stdout = Logger(filename=args.output_path,stream=sys.stdout)
 args.data_folder='/home/dev/fangkun/data/UCI/'+args.dataset
 
 # -------- main function
 def main():
-    setup_seed(666)
     acctr_record, accte_record = np.zeros(args.num_repeat), np.zeros(args.num_repeat)
     # -------- Repeating 5 Times
     for repeat_idx in range(args.num_repeat):
+        setup_seed(666+repeat_idx)
 
         print("======== ========")
         print("---- Repeat %d/%d..."%(repeat_idx+1,args.num_repeat))
@@ -119,7 +119,7 @@ def main():
 
 # -------- progressively training Freeze & Inverse
 def prog_train(net, trainloader, testloader, valloader, repeat_idx):
-    best_acctr, best_accva, chosen_accte, best_epoch = 0, 0, 0, 0
+    best_accva, chosen_accte, chosen_acctr, best_epoch = 0, 0, 0, 0
     for layer_idx in range(args.num_layers):
         print('----------------')
         print('Training phase %d/%d...' % (layer_idx+1, args.num_layers))
@@ -137,21 +137,23 @@ def prog_train(net, trainloader, testloader, valloader, repeat_idx):
             accte=val(net, testloader, epoch)
             accva=val(net, valloader, epoch)
 
-            if acctr > best_acctr:
-                best_acctr = acctr
-            if accva > best_accva:
-                best_accva = accva
-
-                if acctr >= best_acctr:
+            if layer_idx == (args.num_layers-1):
+                if accva > best_accva:
+                    best_accva = accva
+                    chosen_acctr = acctr
                     chosen_accte = accte
                     best_epoch = epoch
+
                     checkpoint = {'state_dict': net.state_dict()}
                     torch.save(checkpoint, os.path.join(args.save_path,"best-%d.pth"%repeat_idx))
 
-            if epoch % args.print_freq == 0 or epoch == args.epochs[layer_idx]-1:
-                print('Updated at %d-epoch: train/test/val acc.=%.2f/%.2f/%.2f!' % (best_epoch, best_acctr, chosen_accte, best_accva))
-                print('Current    %d-epoch: train/test/val acc.=%.2f/%.2f/%.2f!' % (epoch, acctr, accte, accva))
-                print('-------------------------------------------------------')
+                if epoch % args.print_freq == 0 or epoch == args.epochs[layer_idx]-1:
+                    print('Updated at %d-epoch: train/test/val acc.=%.2f/%.2f/%.2f!' % (best_epoch, chosen_acctr, chosen_accte, best_accva))
+                    print('Current    %d-epoch: train/test/val acc.=%.2f/%.2f/%.2f!' % (epoch, acctr, accte, accva))
+                    print('-------------------------------------------------------')
+            else:
+                if epoch % args.print_freq == 0 or epoch == args.epochs[layer_idx]-1:
+                    print('Current    %d-epoch: train/test/val acc.=%.2f/%.2f/%.2f!' % (epoch, acctr, accte, accva))
 
     return chosen_accte
 
