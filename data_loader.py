@@ -106,20 +106,17 @@ ATTRIBUTE:
 class Monks(data.Dataset):
     def __init__(self, data_folder, train=True, transform=None):
         if train == True:
-            data_path = os.path.join(data_folder, 'train.dat')
+            data_path = os.path.join(data_folder, 'train.mat')
+            X = scio.loadmat(data_path)['Xtrain']
+            y = scio.loadmat(data_path)['ytrain']
         else:
-            data_path = os.path.join(data_folder, 'test.dat')
-        
-        read_data = np.loadtxt(data_path, delimiter=" ", dtype=str, usecols=(1,2,3,4,5,6,7))
-        y = np.array(read_data[:,-1])
-        X = np.array(read_data[:,0:-1])
+            data_path = os.path.join(data_folder, 'test.mat')
+            X = scio.loadmat(data_path)['Xtest']
+            y = scio.loadmat(data_path)['ytest']
+    
         X = X.astype(np.float32)
-        y = y.astype(np.int64)
         y[y!=1] = 0
-
-        # normalize
-        for i in range(X.shape[1]):
-            X[:,i] = (X[:,i]-X[:,i].min()) / (X[:,i].max()-X[:,i].min())
+        y = y.astype(np.int64).squeeze()
         self.X = X
         self.y = y
     def __getitem__(self, index):
