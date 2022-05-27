@@ -12,7 +12,7 @@ import os
 # -------- get data sets --------
 def get_dataloader(args):
     if args.dataset=='monks1' or args.dataset=='monks2' or args.dataset=='monks3' \
-        or args.dataset=='adult' or args.dataset=='ijcnn':
+        or args.dataset=='adult' or args.dataset=='ijcnn' or args.dataset=='synthetic':
 
         if args.dataset=='monks1' or args.dataset=='monks2' or args.dataset=='monks3':
             args.num_dim=6
@@ -31,6 +31,12 @@ def get_dataloader(args):
             trainset = Ijcnn(args.data_folder, train=True, 
                             transform=transforms.Compose([transforms.ToTensor()]))
             testset = Ijcnn(args.data_folder, train=False,
+                            transform=transforms.Compose([transforms.ToTensor()]))
+        elif args.dataset=='synthetic':
+            assert args.num_dim>0, "The dimension of the synthetic data should be specified." 
+            trainset = Synthetic(args.data_folder, args.num_dim, train=True, 
+                            transform=transforms.Compose([transforms.ToTensor()]))
+            testset = Synthetic(args.data_folder, args.num_dim, train=False,
                             transform=transforms.Compose([transforms.ToTensor()]))
 
         if args.val:
@@ -322,6 +328,30 @@ class Phishing(data.Dataset):
         for i in range(X.shape[1]):
             X[:,i] = (X[:,i]-X[:,i].min()) / (X[:,i].max()-X[:,i].min())
             
+        self.X = X
+        self.y = y
+    def __getitem__(self, index):
+        return self.X[index,:], self.y[index]
+    def __len__(self):
+        return self.X.shape[0]
+
+"""
+Load synthetic data set
+"""
+class Synthetic(data.Dataset):
+    def __init__(self, data_folder, num_dim, train=True, transform=None):
+        if train == True:
+            data_path = os.path.join(data_folder, 'train_d%d.mat'%num_dim)
+            X = scio.loadmat(data_path)['Xtrain']
+            y = scio.loadmat(data_path)['ytrain']
+        else:
+            data_path = os.path.join(data_folder, 'test_d%d.mat'%num_dim)
+            X = scio.loadmat(data_path)['Xtest']
+            y = scio.loadmat(data_path)['ytest']
+    
+        X = X.astype(np.float32)
+        y[y!=1] = 0
+        y = y.astype(np.int64).squeeze()
         self.X = X
         self.y = y
     def __getitem__(self, index):
