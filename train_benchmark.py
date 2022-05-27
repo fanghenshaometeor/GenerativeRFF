@@ -31,10 +31,10 @@ parser.add_argument('--model_dir',type=str,default='./save/',help='model save fo
 parser.add_argument('--output_dir',type=str,default='./output/',help='terminal output')
 # -------- exp. settings ------------
 parser.add_argument('--batch_size',type=int,default=512,help='batch-size')
-parser.add_argument('--num_train',type=int,default=0,help='number of training set')
-parser.add_argument('--num_test',type=int,default=0,help='number of test data')
-parser.add_argument('--num_val',type=int,default=0,help='number of validation set')
-parser.add_argument('--num_dim',type=int,default=0,help='number of dimension')
+parser.add_argument('--num_train',type=int,default=-1,help='number of training set')
+parser.add_argument('--num_test',type=int,default=-1,help='number of test data')
+parser.add_argument('--num_val',type=int,default=-1,help='number of validation set')
+parser.add_argument('--num_dim',type=int,default=-1,help='number of dimension')
 parser.add_argument('--num_classes',type=int,default=2,help='number of classes')
 # -------- exp. settings ------------
 parser.add_argument('--val',type=int,help='enable the adversarial training')
@@ -60,7 +60,10 @@ if not os.path.exists(os.path.join(args.output_dir,args.dataset)):
     os.makedirs(os.path.join(args.output_dir,args.dataset))
 args.output_path=os.path.join(args.output_dir,args.dataset,'train-lr-%s-wd-%s.log'%(str(args.lr),str(args.wd)))
 sys.stdout = Logger(filename=args.output_path,stream=sys.stdout)
-args.data_folder='/home/dev/fangkun/data/UCI/'+args.dataset
+if args.dataset == 'synthetic':
+    args.data_folder='./synthetic_data/'
+else:
+    args.data_folder='/home/dev/fangkun/data/UCI/'+args.dataset
 
 # -------- main function
 def main():
@@ -114,7 +117,8 @@ def main():
     print("======== ========")
     print("---- Avg. Results")
     print("---- Training: %.2f %.2f; Test: %.2f %.2f."%(acctr_record.mean(), acctr_record.std(), accte_record.mean(), accte_record.std()))
-    
+    print("---- Training: ", acctr_record)
+    print("---- Test    : ", accte_record)
     return
 
 # -------- progressively training Freeze & Inverse
