@@ -68,6 +68,7 @@ else:
 # -------- main function
 def main():
     acctr_record, accte_record = np.zeros(args.num_repeat), np.zeros(args.num_repeat)
+    accva_record = np.zeros(args.num_repeat)
     # -------- Repeating 5 Times
     for repeat_idx in range(args.num_repeat):
         setup_seed(666+repeat_idx)
@@ -98,7 +99,7 @@ def main():
 
         # -------- Progressively Training Freeze Inverse
         print("---- Start Progressively Training...")
-        chosen_accte=prog_train(net, trainloader, testloader, valloader, repeat_idx)
+        best_accva=prog_train(net, trainloader, testloader, valloader, repeat_idx)
     
         # -------- Evaluation on the whole training set
         args.val=0
@@ -114,11 +115,14 @@ def main():
         print("---- Repeat %d/%d: Train/Test acc.=%.2f/%.2f"%(repeat_idx+1,args.num_repeat,acctr,accte))
         acctr_record[repeat_idx] = acctr
         accte_record[repeat_idx] = accte
+        accva_record[repeat_idx] = best_accva
     print("======== ========")
     print("---- Avg. Results")
     print("---- Training: %.2f %.2f; Test: %.2f %.2f."%(acctr_record.mean(), acctr_record.std(), accte_record.mean(), accte_record.std()))
+    print("---- Validation: %.2f %.2f"%(accva_record.mean(), accva_record.std()))
     print("---- Training: ", acctr_record)
     print("---- Test    : ", accte_record)
+    print("---- Val.    : ", accva_record)
     return
 
 # -------- progressively training Freeze & Inverse
@@ -159,7 +163,7 @@ def prog_train(net, trainloader, testloader, valloader, repeat_idx):
                 if epoch % args.print_freq == 0 or epoch == args.epochs[layer_idx]-1:
                     print('Current    %d-epoch: train/test/val acc.=%.2f/%.2f/%.2f!' % (epoch, acctr, accte, accva))
 
-    return chosen_accte
+    return best_accva
 
 def get_opt_params(layer_idx, net):
     if layer_idx == (args.num_layers-1):
