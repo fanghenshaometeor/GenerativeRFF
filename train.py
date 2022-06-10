@@ -10,8 +10,7 @@ import argparse
 
 import numpy as np
 
-from model import net_g_shallow
-from model import net_g_deep
+from model import netG
 from model import GRFFNet
 from utils import AverageMeter, accuracy
 from utils import setup_seed
@@ -52,18 +51,25 @@ parser.add_argument('--lr',type=float,default=0.1,help='learning rate')
 parser.add_argument('--wd',type=float,default=5e-4,help='weight-decay')
 args = parser.parse_args()
 
-writer=SummaryWriter(os.path.join(args.log_dir,args.dataset+'/'))
-if not os.path.exists(os.path.join(args.model_dir,args.dataset)):
-    os.makedirs(os.path.join(args.model_dir,args.dataset))
-args.save_path=os.path.join(args.model_dir,args.dataset)
-if not os.path.exists(os.path.join(args.output_dir,args.dataset)):
-    os.makedirs(os.path.join(args.output_dir,args.dataset))
-args.output_path=os.path.join(args.output_dir,args.dataset,'train-lr-%s-wd-%s.log'%(str(args.lr),str(args.wd)))
-sys.stdout = Logger(filename=args.output_path,stream=sys.stdout)
 if args.dataset == 'synthetic':
     args.data_folder='./synthetic_data/'
+    writer=SummaryWriter(os.path.join(args.log_dir,args.dataset,'%d-dim-%d-layers/'%(args.num_dim,args.num_layers)))
+    if not os.path.exists(os.path.join(args.model_dir,args.dataset,'%d-dim-%d-layers/'%(args.num_dim,args.num_layers))):
+        os.makedirs(os.path.join(args.model_dir,args.dataset,'%d-dim-%d-layers/'%(args.num_dim,args.num_layers)))
+    args.save_path=os.path.join(args.model_dir,args.dataset,'%d-dim-%d-layers/'%(args.num_dim,args.num_layers))
+    if not os.path.exists(os.path.join(args.output_dir,args.dataset,'%d-dim-%d-layers/'%(args.num_dim,args.num_layers))):
+        os.makedirs(os.path.join(args.output_dir,args.dataset,'%d-dim-%d-layers/'%(args.num_dim,args.num_layers)))
+    args.output_path=os.path.join(args.output_dir,args.dataset,'%d-dim-%d-layers/'%(args.num_dim,args.num_layers),'train-lr-%s-wd-%s.log'%(str(args.lr),str(args.wd)))
 else:
     args.data_folder='/home/dev/fangkun/data/UCI/'+args.dataset
+    writer=SummaryWriter(os.path.join(args.log_dir,args.dataset+'/'))
+    if not os.path.exists(os.path.join(args.model_dir,args.dataset)):
+        os.makedirs(os.path.join(args.model_dir,args.dataset))
+    args.save_path=os.path.join(args.model_dir,args.dataset)
+    if not os.path.exists(os.path.join(args.output_dir,args.dataset)):
+        os.makedirs(os.path.join(args.output_dir,args.dataset))
+    args.output_path=os.path.join(args.output_dir,args.dataset,'train-lr-%s-wd-%s.log'%(str(args.lr),str(args.wd)))
+sys.stdout = Logger(filename=args.output_path,stream=sys.stdout)
 
 # -------- main function
 def main():
@@ -89,13 +95,14 @@ def main():
         assert args.num_layers==len(args.epochs), "Mismatch between the number of layers and the number of training phases."
         for layer_idx in range(args.num_layers):
             if layer_idx == 0:
-                net = GRFFNet(GRFFBlock=net_g_shallow, num_classes=args.num_classes, num_layers=1,d=args.num_dim,D=args.D)
+                net = GRFFNet(GRFFBlock=netG, num_classes=args.num_classes, num_layers=1,d=args.num_dim,D=args.D)
             else:
-                net._add_layer(GRFFBlock=net_g_shallow, layer_index=layer_idx)
+                net._add_layer(GRFFBlock=netG, layer_index=layer_idx)
         net = net.cuda()
         print("-------- --------")
         print("---- Net information:")
-        print(net)
+        print("---- # layers = %d"%args.num_layers)
+        print("---- D: ", args.D)
 
         # -------- Progressively Training Freeze Inverse
         print("---- Start Progressively Training...")
