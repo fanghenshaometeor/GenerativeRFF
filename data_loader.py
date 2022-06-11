@@ -96,6 +96,32 @@ def get_dataloader(args):
             trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
             testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
             valloader = None
+    elif args.dataset == 'mnist':
+        transform = transforms.Compose(
+                        [transforms.ToTensor(),
+                        transforms.Normalize((0.1307,), (0.3081,))])
+        trainset = torchvision.datasets.MNIST(root=args.data_folder, train=True, download=True, 
+                                              transform=transform)
+        testset = torchvision.datasets.MNIST(root=args.data_folder, train=False, download=True, 
+                                             transform=transform)
+        if args.val:
+            args.num_test = len(testset)
+            args.num_val = round(len(trainset)*args.ratio_val)
+            args.num_train = len(trainset)-args.num_val
+
+            train_val = data.random_split(trainset, (args.num_train, args.num_val))
+            trainset, valset = train_val[0], train_val[1]
+            trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=8)
+            testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=8)
+            valloader = DataLoader(valset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=8)
+        else:
+            args.num_val = 0
+            args.num_test = len(testset)
+            args.num_train = len(trainset)
+
+            trainloader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=8)
+            testloader = DataLoader(testset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=8)
+            valloader = None
     else:
         assert False, "Unknown dataset : {}".format(args.dataset)
     return trainloader, testloader, valloader
