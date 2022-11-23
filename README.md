@@ -1,5 +1,18 @@
-# GenerativeRFFs
-Codes for the paper [*End-to-end Kernel Learning via Generative Random Fourier Features*](https://arxiv.org/abs/2009.04614).
+# Generative Random Fourier Features
+Codes for the paper `End-to-end Kernel Learning via Generative Random Fourier Features`. [journal](https://www.sciencedirect.com/science/article/pii/S0031320322005374), [arxiv](https://arxiv.org/abs/2009.04614v4).
+
+If our work is helpful for your research, please consider citing:
+```
+@article{fang2023end,
+  title={End-to-end kernel learning via generative random Fourier features},
+  author={Fang, Kun and Liu, Fanghui and Huang, Xiaolin and Yang, Jie},
+  journal={Pattern Recognition},
+  volume={134},
+  pages={109057},
+  year={2023},
+  publisher={Elsevier}
+}
+```
 
 ## Table of Content
   - [1. File descriptions](#1file-descriptions)
@@ -22,6 +35,7 @@ To see the improved generalization performance of the GRFF model on the syntheti
 ```
 sh train.sh
 ```
+Comment or uncomment specific lines in `train.sh` to run the corresponding experiments.
 
 ### Adversarial robustness
 To see the adversarial robustness of the GRFF model on MNIST, run
@@ -33,15 +47,4 @@ Detailed settings of the training hyper-parameters can be found in the 2 scripts
 
 ##
 
-If u have problems about the codes or paper, u could contact me (fanghenshao@sjtu.edu.cn) or raise issues in GitHub.
-
-If u find the codes useful, welcome to fork and star this repo and cite our paper! :)
-
-```
-@article{fang2020end,
-  title={End-to-end Kernel Learning via Generative Random Fourier Features},
-  author={Fang, Kun and Huang, Xiaolin and Liu, Fanghui and Yang, Jie},
-  journal={arXiv preprint arXiv:2009.04614},
-  year={2020}
-}
-}
+If u have problems about the codes or paper, u could contact me (fanghenshao@sjtu.edu.cn) or raise issues in this repo.
