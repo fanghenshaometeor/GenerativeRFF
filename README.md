@@ -1,5 +1,5 @@
 # Generative Random Fourier Features
-Codes for the paper `End-to-end Kernel Learning via Generative Random Fourier Features` accepted by *Pattern Recognition*. **[journal](https://www.sciencedirect.com/science/article/pii/S0031320322005374)**, **[arxiv](https://arxiv.org/abs/2009.04614v4)**.
+Code for the paper `End-to-end Kernel Learning via Generative Random Fourier Features` accepted by *Pattern Recognition*. **[journal](https://www.sciencedirect.com/science/article/pii/S0031320322005374)**, **[arxiv](https://arxiv.org/abs/2009.04614v4)**.
 
 If our work is helpful for your research, please consider citing:
 ```
@@ -47,4 +47,4 @@ Detailed settings of the training hyper-parameters can be found in the 2 scripts
 
 ##
 
-If u have problems about the codes or paper, u could contact me (fanghenshao@sjtu.edu.cn) or raise issues in this repo.
+If u have problems about the code or paper, u could contact me (fanghenshao@sjtu.edu.cn) or raise issues in this repo.
